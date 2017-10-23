@@ -31,7 +31,7 @@ VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
 BATCH_SIZE = 3 # How many batches of files you want to read in, from 0 to 5)
 NUM_TRAIN_BATCH = 1 # How many batches of files you want to read in, from 0 to 5)
-EPOCH_SIZE = 10000 * NUM_TRAIN_BATCH
+EPOCH_SIZE = BATCH_SIZE * NUM_TRAIN_BATCH
 
 
 def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
@@ -66,7 +66,6 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
         if os.path.exists(image_path):
             image = misc.imread(image_path)
             if len(image.shape) > 2:
-                #TODO, what is this strange shape problem? Revisit tonight.
                 print name + " has broken dimensions!"
                 continue
             data[line_count] = image.flatten()

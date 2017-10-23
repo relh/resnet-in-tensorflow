@@ -143,6 +143,7 @@ class Train(object):
         img_depth]
         :return: the softmax probability with shape [num_test_images, num_labels]
         '''
+        # update hyperparams
         num_test_images = len(test_image_array)
         num_batches = num_test_images // FLAGS.test_batch_size
         remain_images = num_test_images % FLAGS.test_batch_size
@@ -154,7 +155,9 @@ class Train(object):
 
         # Build the test graph
         logits = inference(self.test_image_placeholder, FLAGS.num_residual_blocks, reuse=False)
-        predictions = tf.nn.softmax(logits)
+        predictions = tf.nn.sigmoid(logits)
+
+        #tf.metrics.auc(labels, predictions)
 
         # Initialize a new session and restore a checkpoint
         saver = tf.train.Saver(tf.all_variables())
@@ -248,7 +251,6 @@ class Train(object):
         :return: augmented train batch data and labels. 4D numpy array and 1D numpy array
         '''
         offset = np.random.choice(EPOCH_SIZE - train_batch_size, 1)[0]
-        offset = 0
         batch_data = train_data[offset:offset+train_batch_size, ...]
         #batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
 
