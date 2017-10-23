@@ -84,7 +84,8 @@ def _read_one_batch(path, is_random_label):
 
             if diagnoses[0] == 'No Finding':
                 labels[line_count] = [0,0,0,0,0,0,0,0]
-            labels[line_count]np.eye
+            labels[line_count]
+            #np.eye
 
             
             #label[line_count] = misc.imread(image_path).flatten()
