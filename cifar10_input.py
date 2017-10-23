@@ -12,7 +12,7 @@ import cv2
 data_dir = 'cifar10_data'
 full_data_dir = 'cifar10_data/cifar-10-batches-py/data_batch_'
 vali_dir = 'cifar10_data/cifar-10-batches-py/test_batch'
-DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
+#DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
 
 
 IMG_WIDTH = 32
@@ -62,6 +62,12 @@ def _read_one_batch(path, is_random_label):
     fo = open(path, 'rb')
     dicts = cPickle.load(fo)
     fo.close()
+    print dicts.keys()
+    for k,v in dicts.items():
+        print k
+        print dicts['data'].shape
+        print len(dicts['labels'])
+        #print v
 
     data = dicts['data']
     if is_random_label is False:
@@ -187,4 +193,6 @@ def read_validation_data():
 
     return validation_array, validation_labels
 
-
+if __name__ == "__main__":
+    path = './cifar10_data/cifar-10-batches-py/data_batch_1' 
+    _read_one_batch(path, False)

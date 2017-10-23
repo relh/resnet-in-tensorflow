@@ -417,12 +417,9 @@ class Train(object):
         return np.mean(loss_list), np.mean(error_list)
 
 
-maybe_download_and_extract()
+# Already done!
+#maybe_download_and_extract()
 # Initialize the Train object
 train = Train()
 # Start the training session
 train.train()
-
-
-
-
