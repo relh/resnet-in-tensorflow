@@ -81,7 +81,7 @@ class Train(object):
         # If you want to load from a checkpoint
         if FLAGS.is_use_ckpt is True:
             saver.restore(sess, FLAGS.ckpt_path)
-            print 'Restored from checkpoint...'
+            print('Restored from checkpoint...')
         else:
             sess.run(init)
 
@@ -94,10 +94,10 @@ class Train(object):
         train_error_list = []
         val_error_list = []
 
-        print 'Start training...'
-        print '----------------------------'
+        print('Start training...')
+        print('----------------------------')
 
-        for step in xrange(FLAGS.train_steps):
+        for step in range(FLAGS.train_steps):
 
             train_batch_data, train_batch_labels = self.generate_augment_train_batch(all_data, all_labels,
                                                                         FLAGS.train_batch_size)
@@ -106,24 +106,20 @@ class Train(object):
             # Want to validate once before training. You may check the theoretical validation
             # loss first
 
-
             start_time = time.time()
 
-            _, train_loss_value = sess.run([self.train_op,
-                                                           self.full_loss],
+            _, train_loss_value = sess.run([self.train_op, self.full_loss],
                                 {self.image_placeholder: train_batch_data,
                                   self.label_placeholder: train_batch_labels,
                                   self.lr_placeholder: FLAGS.init_lr})
             duration = time.time() - start_time
 
-
             if step % FLAGS.report_freq == 0:
-                print train_loss_value
-
+                print(train_loss_value)
 
             if step == FLAGS.decay_step0 or step == FLAGS.decay_step1:
                 FLAGS.init_lr = 0.1 * FLAGS.init_lr
-                print 'Learning rate decayed to ', FLAGS.init_lr
+                print('Learning rate decayed to ', FLAGS.init_lr)
 
             # Save checkpoints every 10000 steps
             if step % 10000 == 0 or (step + 1) == FLAGS.train_steps:
@@ -147,7 +143,7 @@ class Train(object):
         num_test_images = len(test_image_array)
         num_batches = num_test_images // FLAGS.test_batch_size
         remain_images = num_test_images % FLAGS.test_batch_size
-        print '%i test batches in total...' %num_batches
+        print('%i test batches in total...' %num_batches)
 
         # Create the test image and labels placeholders
         self.test_image_placeholder = tf.placeholder(dtype=tf.float32, shape=[FLAGS.test_batch_size,
@@ -164,13 +160,13 @@ class Train(object):
         sess = tf.Session()
 
         saver.restore(sess, FLAGS.test_ckpt_path)
-        print 'Model restored from ', FLAGS.test_ckpt_path
+        print('Model restored from ', FLAGS.test_ckpt_path)
 
         prediction_array = np.array([]).reshape(-1, NUM_CLASS)
         # Test by batches
         for step in range(num_batches):
             if step % 10 == 0:
-                print '%i batches finished!' %step
+                print('%i batches finished!' %step)
             offset = step * FLAGS.test_batch_size
             test_image_batch = test_image_array[offset:offset+FLAGS.test_batch_size, ...]
 
@@ -253,9 +249,9 @@ class Train(object):
         offset = np.random.choice(EPOCH_SIZE - train_batch_size, 1)[0]
         batch_data = train_data[offset:offset+train_batch_size, ...]
         #batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
-
         #batch_data = whitening_image(batch_data)
-        batch_label = train_labels[offset:offset+FLAGS.train_batch_size]
+
+        batch_label = train_labels[offset:offset+train_batch_size]
 
         return batch_data, batch_label
 

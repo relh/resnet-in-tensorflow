@@ -5,7 +5,7 @@ import tarfile
 from six.moves import urllib
 import sys
 import numpy as np
-import cPickle
+#import cPickle
 import os
 import cv2
 from scipy import misc
@@ -30,8 +30,7 @@ TRAIN_RANDOM_LABEL = False # Want to use random label for train data?
 VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
 BATCH_SIZE = 3 # How many batches of files you want to read in, from 0 to 5)
-NUM_TRAIN_BATCH = 1 # How many batches of files you want to read in, from 0 to 5)
-EPOCH_SIZE = BATCH_SIZE * NUM_TRAIN_BATCH
+EPOCH_SIZE = BATCH_SIZE * 100
 
 
 def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
@@ -44,9 +43,9 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
     :param is_random_label: do you want to use random labels?
     :return: image numpy arrays and label numpy arrays
     '''
-    data = np.zeros((BATCH_SIZE, 1024*1024*1))
+    data = np.zeros((EPOCH_SIZE, 1024*1024*1))
     problems = ['No Finding', 'Pneumothorax', 'Effusion', 'Cardiomegaly', 'Pleural_Thickening', 'Atelectasis', 'Consolidation', 'Edema', 'Emphysema', 'Pneumonia', 'Nodule', 'Mass', 'Infiltration', 'Hernia', 'Fibrosis']
-    label = np.zeros((BATCH_SIZE, len(problems)-1))
+    label = np.zeros((EPOCH_SIZE, len(problems)-1))
     encoding = np.eye(len(problems)-1)#, dtype=int)
 
     line_count = -1
@@ -55,18 +54,18 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
         line_count += 1
         if line_count == 0:
             continue 
-        if line_count == BATCH_SIZE:
+        if line_count == EPOCH_SIZE:
             break
 
         name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line.rstrip().split(',')
         image_path = image_dir + name 
 
-        print labels
+        print(labels)
         # Only load in images that exist
         if os.path.exists(image_path):
             image = misc.imread(image_path)
             if len(image.shape) > 2:
-                print name + " has broken dimensions!"
+                print(name + " has broken dimensions!")
                 continue
             data[line_count] = image.flatten()
 
@@ -76,8 +75,8 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
                     continue 
                 label[line_count] += encoding[problems.index(problem)-1]
 
-    print data
-    print label
+    print(data)
+    print(label)
     return data, label
 
 
@@ -94,7 +93,7 @@ def read_in_all_images(address_list=[label_path], shuffle=True, is_random_label 
     label = np.array([]).reshape([0, NUM_CLASS])
 
     for address in address_list:
-        print 'Reading images from ' + address
+        print('Reading images from ' + address)
         batch_data, batch_label = _read_one_batch(address, is_random_label)
         # Concatenate along axis 0 by default
         data = np.concatenate((data, batch_data))
@@ -109,7 +108,7 @@ def read_in_all_images(address_list=[label_path], shuffle=True, is_random_label 
 
 
     if shuffle is True:
-        print 'Shuffling'
+        print('Shuffling')
         order = np.random.permutation(num_data)
         data = data[order, ...]
         label = label[order]
@@ -174,9 +173,7 @@ def prepare_train_data(padding_size):
     :param padding_size: int. how many layers of zero pads to add on each side?
     :return: all the train data and corresponding labels
     '''
-    path_list = []
-    for i in range(1, NUM_TRAIN_BATCH+1):
-        path_list.append(label_path) #full_data_dir + str(i))
+    path_list = [label_path]
     data, label = read_in_all_images(path_list, is_random_label=TRAIN_RANDOM_LABEL)
     
     pad_width = ((0, 0), (padding_size, padding_size), (padding_size, padding_size), (0, 0))

@@ -1,3 +1,5 @@
+opencv-python
 numpy
 scipy
 Pillow
+pandas
