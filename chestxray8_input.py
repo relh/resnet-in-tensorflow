@@ -22,10 +22,10 @@ label_path = label_dir + 'Data_Entry_2017.csv'
 #DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
 
 # Todo rewrite
-#IMG_WIDTH = 32
-#IMG_HEIGHT = 32
-#IMG_DEPTH = 3
-#NUM_CLASS = 10
+IMG_WIDTH = 1024
+IMG_HEIGHT = 1024
+IMG_DEPTH = 1
+NUM_CLASS = 14
 
 TRAIN_RANDOM_LABEL = False # Want to use random label for train data?
 VALI_RANDOM_LABEL = False # Want to use random label for validation?
@@ -35,7 +35,7 @@ NUM_TRAIN_BATCH = 5 # How many batches of files you want to read in, from 0 to 5
 EPOCH_SIZE = 10000 * NUM_TRAIN_BATCH
 
 
-def _read_one_batch(path, is_random_label):
+def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
     '''
     The training data contains five data batches in total. The validation data has only one
     batch. This function takes the directory of one batch of data and returns the images and
@@ -83,7 +83,7 @@ def _read_one_batch(path, is_random_label):
     return data, label
 
 
-def read_in_all_images(address_list, shuffle=True, is_random_label = False):
+def read_in_all_images(address_list=[label_path], shuffle=True, is_random_label = False):
     """
     This function reads all training or validation data, shuffles them if needed, and returns the
     images and the corresponding labels as numpy arrays
@@ -93,7 +93,7 @@ def read_in_all_images(address_list, shuffle=True, is_random_label = False):
     image_height, image_width, image_depth] and labels are in 1D arrays: [num_images]
     """
     data = np.array([]).reshape([0, IMG_WIDTH * IMG_HEIGHT * IMG_DEPTH])
-    label = np.array([])
+    label = np.array([]).reshape([0, NUM_CLASS])
 
     for address in address_list:
         print 'Reading images from ' + address
@@ -199,4 +199,5 @@ def read_validation_data():
     return validation_array, validation_labels
 
 if __name__ == "__main__":
-    _read_one_batch(label_path, False)
+    read_in_all_images()
+    #_read_one_batch(label_path, False)
