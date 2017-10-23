@@ -31,7 +31,7 @@ TRAIN_RANDOM_LABEL = False # Want to use random label for train data?
 VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
 BATCH_SIZE = 250 # How many batches of files you want to read in, from 0 to 5)
-NUM_TRAIN_BATCH = 5 # How many batches of files you want to read in, from 0 to 5)
+NUM_TRAIN_BATCH = 2 # How many batches of files you want to read in, from 0 to 5)
 EPOCH_SIZE = 10000 * NUM_TRAIN_BATCH
 
 
@@ -178,7 +178,7 @@ def prepare_train_data(padding_size):
     '''
     path_list = []
     for i in range(1, NUM_TRAIN_BATCH+1):
-        path_list.append(full_data_dir + str(i))
+        path_list.append(label_path) #full_data_dir + str(i))
     data, label = read_in_all_images(path_list, is_random_label=TRAIN_RANDOM_LABEL)
     
     pad_width = ((0, 0), (padding_size, padding_size), (padding_size, padding_size), (0, 0))
