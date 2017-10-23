@@ -169,7 +169,7 @@ def inference(input_tensor_batch, n, reuse):
 
     layers = []
     with tf.variable_scope('conv0', reuse=reuse):
-        conv0 = conv_bn_relu_layer(input_tensor_batch, [3, 3, 3, 16], 1)
+        conv0 = conv_bn_relu_layer(input_tensor_batch, [3, 3, 1, 16], 1)
         activation_summary(conv0)
         layers.append(conv0)
 
@@ -192,7 +192,7 @@ def inference(input_tensor_batch, n, reuse):
         with tf.variable_scope('conv3_%d' %i, reuse=reuse):
             conv3 = residual_block(layers[-1], 64)
             layers.append(conv3)
-        assert conv3.get_shape().as_list()[1:] == [8, 8, 64]
+        #assert conv3.get_shape().as_list()[1:] == [8, 8, 64]
 
     with tf.variable_scope('fc', reuse=reuse):
         in_channel = layers[-1].get_shape().as_list()[-1]
@@ -201,7 +201,7 @@ def inference(input_tensor_batch, n, reuse):
         global_pool = tf.reduce_mean(relu_layer, [1, 2])
 
         assert global_pool.get_shape().as_list()[-1:] == [64]
-        output = output_layer(global_pool, 10)
+        output = output_layer(global_pool, 14)
         layers.append(output)
 
     return layers[-1]

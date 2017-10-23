@@ -21,7 +21,6 @@ label_path = label_dir + 'Data_Entry_2017.csv'
 #vali_dir = 'cifar10_data/cifar-10-batches-py/test_batch'
 #DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
 
-# Todo rewrite
 IMG_WIDTH = 1024
 IMG_HEIGHT = 1024
 IMG_DEPTH = 1
@@ -30,8 +29,8 @@ NUM_CLASS = 14
 TRAIN_RANDOM_LABEL = False # Want to use random label for train data?
 VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
-BATCH_SIZE = 250 # How many batches of files you want to read in, from 0 to 5)
-NUM_TRAIN_BATCH = 2 # How many batches of files you want to read in, from 0 to 5)
+BATCH_SIZE = 128 # How many batches of files you want to read in, from 0 to 5)
+NUM_TRAIN_BATCH = 1 # How many batches of files you want to read in, from 0 to 5)
 EPOCH_SIZE = 10000 * NUM_TRAIN_BATCH
 
 
@@ -48,7 +47,7 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
     data = np.zeros((BATCH_SIZE, 1024*1024*1))
     problems = ['No Finding', 'Pneumothorax', 'Effusion', 'Cardiomegaly', 'Pleural_Thickening', 'Atelectasis', 'Consolidation', 'Edema', 'Emphysema', 'Pneumonia', 'Nodule', 'Mass', 'Infiltration', 'Hernia', 'Fibrosis']
     label = np.zeros((BATCH_SIZE, len(problems)-1))
-    encoding = np.eye(len(problems)-1)
+    encoding = np.eye(len(problems)-1)#, dtype=int)
 
     line_count = -1
     for line in open(path,'r'):
