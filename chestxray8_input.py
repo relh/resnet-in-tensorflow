@@ -30,7 +30,7 @@ label_path = label_dir + 'Data_Entry_2017.csv'
 TRAIN_RANDOM_LABEL = False # Want to use random label for train data?
 VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
-BATCH_SIZE = 500 # How many batches of files you want to read in, from 0 to 5)
+BATCH_SIZE = 250 # How many batches of files you want to read in, from 0 to 5)
 NUM_TRAIN_BATCH = 5 # How many batches of files you want to read in, from 0 to 5)
 EPOCH_SIZE = 10000 * NUM_TRAIN_BATCH
 
@@ -46,8 +46,9 @@ def _read_one_batch(path, is_random_label):
     :return: image numpy arrays and label numpy arrays
     '''
     data = np.zeros((BATCH_SIZE, 1024*1024*1))
-    label = np.zeros((BATCH_SIZE, 14))
-    problems = {}
+    problems = ['No Finding', 'Pneumothorax', 'Effusion', 'Cardiomegaly', 'Pleural_Thickening', 'Atelectasis', 'Consolidation', 'Edema', 'Emphysema', 'Pneumonia', 'Nodule', 'Mass', 'Infiltration', 'Hernia', 'Fibrosis']
+    label = np.zeros((BATCH_SIZE, len(problems)-1))
+    encoding = np.eye(len(problems)-1)
 
     line_count = -1
     for line in open(path,'r'):
@@ -71,19 +72,15 @@ def _read_one_batch(path, is_random_label):
                 continue
             data[line_count] = image.flatten()
 
-            print labels
             diagnoses = labels.split('|')
             for problem in diagnoses:
-                if problem in problems:
-                    problems[problem].append(name)
-                else:
-                    problems[problem] = [name] 
+                if problem == 'No Finding':
+                    continue 
+                label[line_count] += encoding[problems.index(problem)-1]
 
-    #print problems
-    encoding = np.eye(len(problems.keys())-1)
-    print len(problems.keys())
-
-    return data, labels
+    print data[1]
+    print label[1]
+    return data, label
 
 
 def read_in_all_images(address_list, shuffle=True, is_random_label = False):
