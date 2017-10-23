@@ -82,9 +82,9 @@ def _read_one_batch(path, is_random_label):
                 else:
                     problems[problem] = 0 
 
-            if diagnoses[0] == 'No Finding':
-                labels[line_count] = [0,0,0,0,0,0,0,0]
-            labels[line_count]
+            #if diagnoses[0] == 'No Finding':
+            #    labels[line_count] = [0,0,0,0,0,0,0,0]
+            label[line_count]
             #np.eye
 
             
