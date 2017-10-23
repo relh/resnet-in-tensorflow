@@ -1,11 +1,7 @@
-# Coder: Wenxin Xu
-# Github: https://github.com/wenxinxu/resnet_in_tensorflow
-# ==============================================================================
 import tarfile
 from six.moves import urllib
 import sys
 import numpy as np
-#import cPickle
 import os
 import cv2
 from scipy import misc
@@ -15,11 +11,6 @@ data_dir = 'chestxray8_data/'
 image_dir = data_dir + 'images/'
 label_dir = data_dir + 'labels/'
 label_path = label_dir + 'Data_Entry_2017.csv'
-
-#data_dir = 'cifar10_data'
-#full_data_dir = 'cifar10_data/cifar-10-batches-py/data_batch_'
-#vali_dir = 'cifar10_data/cifar-10-batches-py/test_batch'
-#DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
 
 IMG_WIDTH = 1024
 IMG_HEIGHT = 1024
@@ -48,32 +39,36 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
     label = np.zeros((EPOCH_SIZE, len(problems)-1))
     encoding = np.eye(len(problems)-1)#, dtype=int)
 
-    line_count = -1
+    skip = -1
+    read_count = 0
     for line in open(path,'r'):
         #Image Index    Finding Labels  Follow-up # Patient ID  Patient Age Patient Gender  View Position   OriginalImage[Width Height] OriginalImagePixelSpacing[x y]
-        line_count += 1
-        if line_count == 0:
+        skip += 1
+        if skip == 0:
             continue 
-        if line_count == EPOCH_SIZE:
+        if read_count == EPOCH_SIZE:
             break
 
         name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line.rstrip().split(',')
         image_path = image_dir + name 
 
-        print(labels)
+        print("{}/{}.. {}".format(read_count, EPOCH_SIZE, labels))
         # Only load in images that exist
         if os.path.exists(image_path):
             image = misc.imread(image_path)
             if len(image.shape) > 2:
                 print(name + " has broken dimensions!")
                 continue
-            data[line_count] = image.flatten()
+            read_count += 1
+            data[read_count] = image.flatten()
 
             diagnoses = labels.split('|')
             for problem in diagnoses:
                 if problem == 'No Finding':
                     continue 
-                label[line_count] += encoding[problems.index(problem)-1]
+                label[read_count] += encoding[problems.index(problem)-1]
+        else:
+            print(image_path + " does not exist!")
 
     print(data)
     print(label)

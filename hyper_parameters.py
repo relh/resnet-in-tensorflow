@@ -21,9 +21,9 @@ tf.app.flags.DEFINE_integer('train_steps', 80000, '''Total steps that you want t
 tf.app.flags.DEFINE_boolean('is_full_validation', False, '''Validation w/ full validation set or
 a random batch''')
 tf.app.flags.DEFINE_integer('train_batch_size', 3, '''Train batch size''')
-tf.app.flags.DEFINE_integer('validation_batch_size', 250, '''Validation batch size, better to be
+tf.app.flags.DEFINE_integer('validation_batch_size', 3, '''Validation batch size, better to be
 a divisor of 10000 for this task''')
-tf.app.flags.DEFINE_integer('test_batch_size', 125, '''Test batch size''')
+tf.app.flags.DEFINE_integer('test_batch_size', 3, '''Test batch size''')
 
 tf.app.flags.DEFINE_float('init_lr', 0.1, '''Initial learning rate''')
 tf.app.flags.DEFINE_float('lr_decay_factor', 0.1, '''How much to decay the learning rate each
@@ -34,6 +34,7 @@ tf.app.flags.DEFINE_integer('decay_step1', 60000, '''At which step to decay the 
 
 ## The following flags define hyper-parameters modifying the training network
 
+## TODO ADD MORE RESIDUAL BLOCKS
 tf.app.flags.DEFINE_integer('num_residual_blocks', 5, '''How many residual blocks do you want''')
 tf.app.flags.DEFINE_float('weight_decay', 0.0002, '''scale for l2 regularization''')
 
@@ -46,9 +47,9 @@ each side of the image''')
 
 ## If you want to load a checkpoint and continue training
 
-tf.app.flags.DEFINE_string('ckpt_path', 'cache/logs_repeat20/model.ckpt-100000', '''Checkpoint
+tf.app.flags.DEFINE_string('ckpt_path', 'logs_test_110/model.ckpt-0', '''Checkpoint
 directory to restore''')
-tf.app.flags.DEFINE_boolean('is_use_ckpt', False, '''Whether to load a checkpoint and continue
+tf.app.flags.DEFINE_boolean('is_use_ckpt', True, '''Whether to load a checkpoint and continue
 training''')
 
 tf.app.flags.DEFINE_string('test_ckpt_path', 'model_110.ckpt-79999', '''Checkpoint

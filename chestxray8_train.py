@@ -1,7 +1,3 @@
-# Coder: Wenxin Xu
-# Github: https://github.com/wenxinxu/resnet_in_tensorflow
-# ==============================================================================
-
 from resnet import *
 from datetime import datetime
 import time
@@ -102,7 +98,6 @@ class Train(object):
             train_batch_data, train_batch_labels = self.generate_augment_train_batch(all_data, all_labels,
                                                                         FLAGS.train_batch_size)
 
-
             # Want to validate once before training. You may check the theoretical validation
             # loss first
 
@@ -116,6 +111,7 @@ class Train(object):
 
             if step % FLAGS.report_freq == 0:
                 print(train_loss_value)
+                train_error_list.append(train_loss_value)
 
             if step == FLAGS.decay_step0 or step == FLAGS.decay_step1:
                 FLAGS.init_lr = 0.1 * FLAGS.init_lr
