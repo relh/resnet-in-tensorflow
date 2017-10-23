@@ -29,7 +29,7 @@ NUM_CLASS = 14
 TRAIN_RANDOM_LABEL = False # Want to use random label for train data?
 VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
-BATCH_SIZE = 128 # How many batches of files you want to read in, from 0 to 5)
+BATCH_SIZE = 3 # How many batches of files you want to read in, from 0 to 5)
 NUM_TRAIN_BATCH = 1 # How many batches of files you want to read in, from 0 to 5)
 EPOCH_SIZE = 10000 * NUM_TRAIN_BATCH
 
@@ -77,8 +77,8 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
                     continue 
                 label[line_count] += encoding[problems.index(problem)-1]
 
-    print data[1]
-    print label[1]
+    print data
+    print label
     return data, label
 
 

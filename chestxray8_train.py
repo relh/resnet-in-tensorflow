@@ -55,9 +55,6 @@ class Train(object):
         loss = self.loss(logits, self.label_placeholder)
         self.full_loss = tf.add_n([loss] + regu_losses)
 
-        predictions = tf.nn.softmax(logits)
-        self.train_top1_error = self.top_k_error(predictions, self.label_placeholder, 1)
-
         self.train_op, self.train_ema_op = self.train_operation(global_step, self.full_loss)
 
 
@@ -108,14 +105,12 @@ class Train(object):
 
             # Want to validate once before training. You may check the theoretical validation
             # loss first
-            if step % FLAGS.report_freq == 0:
-                pass
 
 
             start_time = time.time()
 
-            _, _, train_loss_value, train_error_value = sess.run([self.train_op, self.train_ema_op,
-                                                           self.full_loss, self.train_top1_error],
+            _, train_loss_value = sess.run([self.train_op,
+                                                           self.full_loss],
                                 {self.image_placeholder: train_batch_data,
                                   self.label_placeholder: train_batch_labels,
                                   self.lr_placeholder: FLAGS.init_lr})
@@ -123,24 +118,7 @@ class Train(object):
 
 
             if step % FLAGS.report_freq == 0:
-                summary_str = sess.run(summary_op, {self.image_placeholder: train_batch_data,
-                                                    self.label_placeholder: train_batch_labels,
-                                                    self.lr_placeholder: FLAGS.init_lr})
-                summary_writer.add_summary(summary_str, step)
-
-                num_examples_per_step = FLAGS.train_batch_size
-                examples_per_sec = num_examples_per_step / duration
-                sec_per_batch = float(duration)
-
-                format_str = ('%s: step %d, loss = %.4f (%.1f examples/sec; %.3f ' 'sec/batch)')
-                print format_str % (datetime.now(), step, train_loss_value, examples_per_sec,
-                                    sec_per_batch)
-                print 'Train top1 error = ', train_error_value
-                print '----------------------------'
-
-                step_list.append(step)
-                train_error_list.append(train_error_value)
-
+                print train_loss_value
 
 
             if step == FLAGS.decay_step0 or step == FLAGS.decay_step1:
@@ -276,9 +254,6 @@ class Train(object):
 
         #batch_data = whitening_image(batch_data)
         batch_label = train_labels[offset:offset+FLAGS.train_batch_size]
-
-        print batch_data.shape
-        print batch_label.shape
 
         return batch_data, batch_label
 
