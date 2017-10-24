@@ -1,6 +1,7 @@
 import tarfile
 from six.moves import urllib
 import sys
+import pickle
 import numpy as np
 import os
 import cv2
@@ -21,11 +22,77 @@ TRAIN_RANDOM_LABEL = False # Want to use random label for train data?
 VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
 BATCH_SIZE = 3 # How many batches of files you want to read in, from 0 to 5)
-EPOCH_SIZE = BATCH_SIZE * 100
+# Total number of images is 50,000
+TRAIN_SIZE = 50000
 
+problems = ['No Finding', 'Pneumothorax', 'Effusion', 'Cardiomegaly', 'Pleural_Thickening', 'Atelectasis', 'Consolidation', 'Edema', 'Emphysema', 'Pneumonia', 'Nodule', 'Mass', 'Infiltration', 'Hernia', 'Fibrosis']
+encoding = np.eye(len(problems)-1)#, dtype=int)
 
-def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
+def load_images(idx_range, image_labels, shuffle=True):
+    #def load_in_all_images(address_list=[label_path], shuffle=True, is_random_label = False):
+    #images = np.array([]).reshape([0, IMG_WIDTH * IMG_HEIGHT * IMG_DEPTH])
+    #labels = np.array([]).reshape([0, NUM_CLASS])
+    images = np.zeros((len(idx_range), IMG_WIDTH*IMG_HEIGHT*IMG_DEPTH))
+    labels = np.zeros((len(idx_range), NUM_CLASS))
+
+    for batch_idx, idx in enumerate(idx_range):
+      #name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line.rstrip().split(',')
+      path = image_labels[idx][0]
+      label = image_labels[idx][1]
+      image_path = image_dir + path 
+
+      print("Loading {}/{}.. {}".format(idx, len(idx_range), label))
+      # Only load in images that exist
+      if os.path.exists(image_path):
+          image = misc.imread(image_path)
+          if len(image.shape) > 2:
+              print(name + " has broken dimensions!")
+              continue
+          images[batch_idx] = image.flatten()
+
+          diagnoses = label.split('|')
+          for problem in diagnoses:
+              if not problem == 'No Finding':
+                labels[batch_idx] += encoding[problems.index(problem)-1]
+      else:
+          print(image_path + " does not exist!")
+
+    # Get images here
+    #data = np.concatenate((data, batch_data))
+    #label = np.concatenate((label, batch_label))
+    num_data = len(labels)
+
+    # This reshape order is really important. Don't change
+    # Reshape is correct. Double checked
+    images = images.reshape((num_data, IMG_HEIGHT * IMG_WIDTH, IMG_DEPTH), order='F')
+    images = images.reshape((num_data, IMG_HEIGHT, IMG_WIDTH, IMG_DEPTH))
+
+    if shuffle is True:
+        print('Shuffling')
+        order = np.random.permutation(num_data)
+        images = images[order, ...]
+        labels = labels[order]
+
+    images = images.astype(np.float32)
+
+    print(images.shape)
+    print(labels.shape)
+    return images, labels
+
+def prepare_train_data(batch_size=BATCH_SIZE, padding_size=0, path=label_path, shuffle=True, is_random_label=False):
     '''
+    Read all the train data into numpy array and add padding_size of 0 paddings on each side of the
+    image
+    :param padding_size: int. how many layers of zero pads to add on each side?
+    :return: all the train data and corresponding labels
+
+    This function reads all training or validation data, shuffles them if needed, and returns the
+    images and the corresponding labels as numpy arrays
+
+    :param address_list: a list of paths of cPickle files
+    :return: concatenated numpy array of data and labels. Data are in 4D arrays: [num_images,
+    image_height, image_width, image_depth] and labels are in 1D arrays: [num_images]
+
     The training data contains five data batches in total. The validation data has only one
     batch. This function takes the directory of one batch of data and returns the images and
     corresponding labels as numpy arrays
@@ -34,82 +101,38 @@ def _read_one_batch(path, is_random_label, batch_size=BATCH_SIZE):
     :param is_random_label: do you want to use random labels?
     :return: image numpy arrays and label numpy arrays
     '''
-    data = np.zeros((EPOCH_SIZE, 1024*1024*1))
-    problems = ['No Finding', 'Pneumothorax', 'Effusion', 'Cardiomegaly', 'Pleural_Thickening', 'Atelectasis', 'Consolidation', 'Edema', 'Emphysema', 'Pneumonia', 'Nodule', 'Mass', 'Infiltration', 'Hernia', 'Fibrosis']
-    label = np.zeros((EPOCH_SIZE, len(problems)-1))
-    encoding = np.eye(len(problems)-1)#, dtype=int)
 
-    skip = -1
-    read_count = 0
-    for line in open(path,'r'):
-        #Image Index    Finding Labels  Follow-up # Patient ID  Patient Age Patient Gender  View Position   OriginalImage[Width Height] OriginalImagePixelSpacing[x y]
-        skip += 1
-        if skip == 0:
-            continue 
-        if read_count == EPOCH_SIZE:
-            break
+    if os.path.exists('image_labels.p'):
+      image_labels = pickle.load(open('image_labels.p', 'rb'))
+    else:
+      image_labels = []
+      skip = -1
+      read_count = 0
+      for line in open(path,'r'):
+          #Image Index    Finding Labels  Follow-up # Patient ID  Patient Age Patient Gender  View Position   OriginalImage[Width Height] OriginalImagePixelSpacing[x y]
+          skip += 1
+          if skip == 0:
+              continue 
+          if read_count == TRAIN_SIZE:
+              break
 
-        name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line.rstrip().split(',')
-        image_path = image_dir + name 
+          name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line.rstrip().split(',')
+          image_path = image_dir + name 
 
-        print("{}/{}.. {}".format(read_count, EPOCH_SIZE, labels))
-        # Only load in images that exist
-        if os.path.exists(image_path):
-            image = misc.imread(image_path)
-            if len(image.shape) > 2:
-                print(name + " has broken dimensions!")
-                continue
-            read_count += 1
-            data[read_count] = image.flatten()
+          print("{}/{}.. {}".format(read_count, TRAIN_SIZE, labels))
+          # Only load in images that exist
+          if os.path.exists(image_path):
+              image = misc.imread(image_path)
+              if len(image.shape) > 2:
+                  print(name + " has broken dimensions!")
+                  continue
+              image_labels.append((name, labels))
+              read_count += 1
+          else:
+              print(image_path + " does not exist!")
+      pickle.dump(image_labels, open('image_labels.p', 'wb'))
 
-            diagnoses = labels.split('|')
-            for problem in diagnoses:
-                if problem == 'No Finding':
-                    continue 
-                label[read_count] += encoding[problems.index(problem)-1]
-        else:
-            print(image_path + " does not exist!")
-
-    print(data)
-    print(label)
-    return data, label
-
-
-def read_in_all_images(address_list=[label_path], shuffle=True, is_random_label = False):
-    """
-    This function reads all training or validation data, shuffles them if needed, and returns the
-    images and the corresponding labels as numpy arrays
-
-    :param address_list: a list of paths of cPickle files
-    :return: concatenated numpy array of data and labels. Data are in 4D arrays: [num_images,
-    image_height, image_width, image_depth] and labels are in 1D arrays: [num_images]
-    """
-    data = np.array([]).reshape([0, IMG_WIDTH * IMG_HEIGHT * IMG_DEPTH])
-    label = np.array([]).reshape([0, NUM_CLASS])
-
-    for address in address_list:
-        print('Reading images from ' + address)
-        batch_data, batch_label = _read_one_batch(address, is_random_label)
-        # Concatenate along axis 0 by default
-        data = np.concatenate((data, batch_data))
-        label = np.concatenate((label, batch_label))
-
-    num_data = len(label)
-
-    # This reshape order is really important. Don't change
-    # Reshape is correct. Double checked
-    data = data.reshape((num_data, IMG_HEIGHT * IMG_WIDTH, IMG_DEPTH), order='F')
-    data = data.reshape((num_data, IMG_HEIGHT, IMG_WIDTH, IMG_DEPTH))
-
-
-    if shuffle is True:
-        print('Shuffling')
-        order = np.random.permutation(num_data)
-        data = data[order, ...]
-        label = label[order]
-
-    data = data.astype(np.float32)
-    return data, label
+    return image_labels 
 
 
 def horizontal_flip(image, axis):
@@ -160,34 +183,6 @@ def random_crop_and_flip(batch_data, padding_size):
 
     return cropped_batch
 
-
-def prepare_train_data(padding_size):
-    '''
-    Read all the train data into numpy array and add padding_size of 0 paddings on each side of the
-    image
-    :param padding_size: int. how many layers of zero pads to add on each side?
-    :return: all the train data and corresponding labels
-    '''
-    path_list = [label_path]
-    data, label = read_in_all_images(path_list, is_random_label=TRAIN_RANDOM_LABEL)
-    
-    pad_width = ((0, 0), (padding_size, padding_size), (padding_size, padding_size), (0, 0))
-    data = np.pad(data, pad_width=pad_width, mode='constant', constant_values=0)
-    
-    return data, label
-
-
-def read_validation_data():
-    '''
-    Read in validation data. Whitening at the same time
-    :return: Validation image data as 4D numpy array. Validation labels as 1D numpy array
-    '''
-    validation_array, validation_labels = read_in_all_images([vali_dir],
-                                                       is_random_label=VALI_RANDOM_LABEL)
-    validation_array = whitening_image(validation_array)
-
-    return validation_array, validation_labels
-
 if __name__ == "__main__":
-    read_in_all_images()
-    #_read_one_batch(label_path, False)
+    image_labels = prepare_train_data()
+    load_images(range(1,10), image_labels)

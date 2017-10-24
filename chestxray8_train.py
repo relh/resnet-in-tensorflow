@@ -242,10 +242,11 @@ class Train(object):
         :param train_batch_size: int
         :return: augmented train batch data and labels. 4D numpy array and 1D numpy array
         '''
-        offset = np.random.choice(EPOCH_SIZE - train_batch_size, 1)[0]
+        offset = np.random.choice(TRAIN_SIZE - train_batch_size, 1)[0]
         batch_data = train_data[offset:offset+train_batch_size, ...]
         #batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
         #batch_data = whitening_image(batch_data)
+        # TODO GET PATHS AND LOAD HERE
 
         batch_label = train_labels[offset:offset+train_batch_size]
 
