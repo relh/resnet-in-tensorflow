@@ -30,8 +30,6 @@ encoding = np.eye(len(problems)-1)#, dtype=int)
 
 def load_images(idx_range, image_labels, shuffle=True):
     #def load_in_all_images(address_list=[label_path], shuffle=True, is_random_label = False):
-    #images = np.array([]).reshape([0, IMG_WIDTH * IMG_HEIGHT * IMG_DEPTH])
-    #labels = np.array([]).reshape([0, NUM_CLASS])
     images = np.zeros((len(idx_range), IMG_WIDTH*IMG_HEIGHT*IMG_DEPTH))
     labels = np.zeros((len(idx_range), NUM_CLASS))
 
@@ -58,8 +56,6 @@ def load_images(idx_range, image_labels, shuffle=True):
           print(image_path + " does not exist!")
 
     # Get images here
-    #data = np.concatenate((data, batch_data))
-    #label = np.concatenate((label, batch_label))
     num_data = len(labels)
 
     # This reshape order is really important. Don't change
@@ -80,28 +76,6 @@ def load_images(idx_range, image_labels, shuffle=True):
     return images, labels
 
 def prepare_train_data(batch_size=BATCH_SIZE, padding_size=0, path=label_path, shuffle=True, is_random_label=False):
-    '''
-    Read all the train data into numpy array and add padding_size of 0 paddings on each side of the
-    image
-    :param padding_size: int. how many layers of zero pads to add on each side?
-    :return: all the train data and corresponding labels
-
-    This function reads all training or validation data, shuffles them if needed, and returns the
-    images and the corresponding labels as numpy arrays
-
-    :param address_list: a list of paths of cPickle files
-    :return: concatenated numpy array of data and labels. Data are in 4D arrays: [num_images,
-    image_height, image_width, image_depth] and labels are in 1D arrays: [num_images]
-
-    The training data contains five data batches in total. The validation data has only one
-    batch. This function takes the directory of one batch of data and returns the images and
-    corresponding labels as numpy arrays
-
-    :param path: the directory of one batch of data
-    :param is_random_label: do you want to use random labels?
-    :return: image numpy arrays and label numpy arrays
-    '''
-
     if os.path.exists('image_labels.p'):
       image_labels = pickle.load(open('image_labels.p', 'rb'))
     else:
@@ -131,7 +105,6 @@ def prepare_train_data(batch_size=BATCH_SIZE, padding_size=0, path=label_path, s
           else:
               print(image_path + " does not exist!")
       pickle.dump(image_labels, open('image_labels.p', 'wb'))
-
     return image_labels 
 
 
