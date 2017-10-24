@@ -39,7 +39,7 @@ def load_images(idx_range, image_labels, shuffle=True):
       label = image_labels[idx][1]
       image_path = image_dir + path 
 
-      print("Loading {}/{}.. {}".format(idx, len(idx_range), label))
+      #print("Loading {}/{}.. {}".format(idx, len(idx_range), label))
       # Only load in images that exist
       if os.path.exists(image_path):
           image = misc.imread(image_path)
@@ -64,15 +64,15 @@ def load_images(idx_range, image_labels, shuffle=True):
     images = images.reshape((num_data, IMG_HEIGHT, IMG_WIDTH, IMG_DEPTH))
 
     if shuffle is True:
-        print('Shuffling')
+        #print('Shuffling')
         order = np.random.permutation(num_data)
         images = images[order, ...]
         labels = labels[order]
 
     images = images.astype(np.float32)
 
-    print(images.shape)
-    print(labels.shape)
+    #print(images.shape)
+    #print(labels.shape)
     return images, labels
 
 def prepare_train_data(batch_size=BATCH_SIZE, padding_size=0, path=label_path, shuffle=True, is_random_label=False):

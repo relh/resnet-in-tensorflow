@@ -61,7 +61,7 @@ class Train(object):
 
         # For the first step, we are loading all training images and validation images into the
         # memory
-        all_data, all_labels = prepare_train_data(padding_size=FLAGS.padding_size)
+        all_image_labels = prepare_train_data(padding_size=FLAGS.padding_size)
 
         # Build the graph for train and validation
         self.build_train_validation_graph()
@@ -95,7 +95,7 @@ class Train(object):
 
         for step in range(FLAGS.train_steps):
 
-            train_batch_data, train_batch_labels = self.generate_augment_train_batch(all_data, all_labels,
+            train_batch_data, train_batch_labels = self.generate_augment_train_batch(all_image_labels,
                                                                         FLAGS.train_batch_size)
 
             # Want to validate once before training. You may check the theoretical validation
@@ -110,7 +110,8 @@ class Train(object):
             duration = time.time() - start_time
 
             if step % FLAGS.report_freq == 0:
-                print(train_loss_value)
+                print('{}/{}.. Loss: {}'.format(step, FLAGS.train_steps, train_loss_value))
+                step_list.append(step)
                 train_error_list.append(train_loss_value)
 
             if step == FLAGS.decay_step0 or step == FLAGS.decay_step1:
@@ -118,12 +119,13 @@ class Train(object):
                 print('Learning rate decayed to ', FLAGS.init_lr)
 
             # Save checkpoints every 10000 steps
-            if step % 10000 == 0 or (step + 1) == FLAGS.train_steps:
+            if step % 100 == 0 or (step + 1) == FLAGS.train_steps:
                 checkpoint_path = os.path.join(train_dir, 'model.ckpt')
+                print('Saving Checkpoint!: {}'.format(checkpoint_path))
                 saver.save(sess, checkpoint_path, global_step=step)
 
                 df = pd.DataFrame(data={'step':step_list, 'train_error':train_error_list,
-                                'validation_error': val_error_list})
+                                'validation_error': train_error_list})
                 df.to_csv(train_dir + FLAGS.version + '_error.csv')
 
 
@@ -189,7 +191,6 @@ class Train(object):
         return prediction_array
 
 
-
     ## Helper functions
     def loss(self, logits, labels):
         '''
@@ -233,7 +234,7 @@ class Train(object):
         return vali_data_batch, vali_label_batch
 
 
-    def generate_augment_train_batch(self, train_data, train_labels, train_batch_size):
+    def generate_augment_train_batch(self, image_labels, train_batch_size):
         '''
         This function helps generate a batch of train data, and random crop, horizontally flip
         and whiten them at the same time
@@ -248,8 +249,8 @@ class Train(object):
         #batch_data = whitening_image(batch_data)
         #batch_label = train_labels[offset:offset+train_batch_size]
 
-        indices = range(offset,offset+train_bach_size)
-        batch_data, batch_label = load_images(indices, (train_data, train_labels), True)
+        indices = range(offset,offset+train_batch_size)
+        batch_data, batch_label = load_images(indices, image_labels, True)
         return batch_data, batch_label
 
 
@@ -287,7 +288,6 @@ class Train(object):
         # ema with decay = 0.0 won't average things at all. This returns the original error
         ema = tf.train.ExponentialMovingAverage(0.0, validation_step)
         ema2 = tf.train.ExponentialMovingAverage(0.95, validation_step)
-
 
         val_op = tf.group(validation_step.assign_add(1), ema.apply([top1_error, loss]),
                           ema2.apply([top1_error, loss]))
