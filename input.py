@@ -1,6 +1,7 @@
 import tarfile
 from six.moves import urllib
 import sys
+import csv
 import pickle
 import numpy as np
 import os
@@ -23,18 +24,17 @@ VALI_RANDOM_LABEL = False # Want to use random label for validation?
 
 BATCH_SIZE = 3 # How many batches of files you want to read in, from 0 to 5)
 # Total number of images is 50,000
-TRAIN_SIZE = 50000
+TRAIN_SIZE = 40000
+VAL_SIZE = 10000
 
 problems = ['No Finding', 'Pneumothorax', 'Effusion', 'Cardiomegaly', 'Pleural_Thickening', 'Atelectasis', 'Consolidation', 'Edema', 'Emphysema', 'Pneumonia', 'Nodule', 'Mass', 'Infiltration', 'Hernia', 'Fibrosis']
 encoding = np.eye(len(problems)-1)#, dtype=int)
 
 def load_images(idx_range, image_labels, shuffle=True):
-    #def load_in_all_images(address_list=[label_path], shuffle=True, is_random_label = False):
     images = np.zeros((len(idx_range), IMG_WIDTH*IMG_HEIGHT*IMG_DEPTH))
     labels = np.zeros((len(idx_range), NUM_CLASS))
 
     for batch_idx, idx in enumerate(idx_range):
-      #name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line.rstrip().split(',')
       path = image_labels[idx][0]
       label = image_labels[idx][1]
       image_path = image_dir + path 
@@ -75,25 +75,30 @@ def load_images(idx_range, image_labels, shuffle=True):
     #print(labels.shape)
     return images, labels
 
-def prepare_train_data(batch_size=BATCH_SIZE, padding_size=0, path=label_path, shuffle=True, is_random_label=False):
-    if os.path.exists('image_labels.p'):
-      image_labels = pickle.load(open('image_labels.p', 'rb'))
+
+def prepare_data(mode, prep_size, padding_size=0, path=label_path):
+    if os.path.exists(mode+'_paths.p'):
+      image_labels = pickle.load(open(mode+'_paths.p', 'rb'))
     else:
       image_labels = []
-      skip = -1
       read_count = 0
-      for line in open(path,'r'):
+      with open(path, 'r') as textfile:
+          # Go backwards for validation to avoid overlap
+          if mode == 'val':
+              data = reversed(list(csv.reader(textfile)))
+          else:
+              data = list(csv.reader(textfile))
+              data.pop(0) # remove headers
+
+      for line in data: #open(path,'r'):
           #Image Index    Finding Labels  Follow-up # Patient ID  Patient Age Patient Gender  View Position   OriginalImage[Width Height] OriginalImagePixelSpacing[x y]
-          skip += 1
-          if skip == 0:
-              continue 
-          if read_count == TRAIN_SIZE:
+          if read_count == prep_size:
               break
 
-          name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line.rstrip().split(',')
+          name, labels, followup, id, age, gender, view, orig_width, orig_height, orig_space_x, orig_space_y, = line
           image_path = image_dir + name 
 
-          print("{}/{}.. {}".format(read_count, TRAIN_SIZE, labels))
+          print("{}/{}.. {}".format(read_count, prep_size, labels))
           # Only load in images that exist
           if os.path.exists(image_path):
               image = misc.imread(image_path)
@@ -104,7 +109,7 @@ def prepare_train_data(batch_size=BATCH_SIZE, padding_size=0, path=label_path, s
               read_count += 1
           else:
               print(image_path + " does not exist!")
-      pickle.dump(image_labels, open('image_labels.p', 'wb'))
+      pickle.dump(image_labels, open(mode+'_paths.p', 'wb'))
     return image_labels 
 
 
@@ -156,6 +161,17 @@ def random_crop_and_flip(batch_data, padding_size):
 
     return cropped_batch
 
+def get_random_indices(prep_size, batch_size=3):
+    offset = np.random.choice(prep_size - batch_size, 1)[0]
+    #batch_data = train_data[offset:offset+train_batch_size, ...]
+    #batch_data = random_crop_and_flip(batch_data, padding_size=FLAGS.padding_size)
+    #batch_data = whitening_image(batch_data)
+    #batch_label = train_labels[offset:offset+train_batch_size]
+
+    indices = range(offset,offset+batch_size)
+    return indices
+
 if __name__ == "__main__":
-    image_labels = prepare_train_data()
+    image_labels = prepare_data('val', VAL_SIZE)
+    image_labels = prepare_data('train', TRAIN_SIZE)
     load_images(range(1,10), image_labels)

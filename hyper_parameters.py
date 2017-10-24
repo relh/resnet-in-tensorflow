@@ -44,7 +44,7 @@ each side of the image''')
 
 ## If you want to load a checkpoint and continue training
 
-tf.app.flags.DEFINE_string('ckpt_path', 'logs_test_110/model.ckpt-0', '''Checkpoint
+tf.app.flags.DEFINE_string('ckpt_path', 'logs_test_110/model.ckpt*', '''Checkpoint
 directory to restore''')
 tf.app.flags.DEFINE_boolean('is_use_ckpt', True, '''Whether to load a checkpoint and continue
 training''')
