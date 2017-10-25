@@ -14,7 +14,7 @@ moving average shown on tensorboard''')
 
 ## The following flags define hyper-parameters regards training
 
-tf.app.flags.DEFINE_integer('train_steps', 8000, '''Total steps that you want to train''')
+tf.app.flags.DEFINE_integer('train_steps', 20000, '''Total steps that you want to train''')
 tf.app.flags.DEFINE_boolean('is_full_validation', False, '''Validation w/ full validation set or
 a random batch''')
 tf.app.flags.DEFINE_integer('train_batch_size', 3, '''Train batch size''')
@@ -25,8 +25,8 @@ tf.app.flags.DEFINE_integer('test_batch_size', 3, '''Test batch size''')
 tf.app.flags.DEFINE_float('init_lr', 0.1, '''Initial learning rate''')
 tf.app.flags.DEFINE_float('lr_decay_factor', 0.1, '''How much to decay the learning rate each
 time''')
-tf.app.flags.DEFINE_integer('decay_step0', 2330, '''At which step to decay the learning rate''')
-tf.app.flags.DEFINE_integer('decay_step1', 4660, '''At which step to decay the learning rate''')
+tf.app.flags.DEFINE_integer('decay_step0', 4330, '''At which step to decay the learning rate''')
+tf.app.flags.DEFINE_integer('decay_step1', 8660, '''At which step to decay the learning rate''')
 
 
 ## The following flags define hyper-parameters modifying the training network

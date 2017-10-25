@@ -2,6 +2,7 @@ from resnet import *
 from datetime import datetime
 import time
 from input import *
+from test import *
 import pandas as pd
 import glob
 import re
@@ -47,11 +48,11 @@ class Train(object):
         # TRAIN OPERATION
         # Add train_loss, current learning rate and train error into the tensorboard summary ops
         tf.summary.scalar('learning_rate', self.lr_placeholder)
-        tf.summary.scalar('train_loss', total_loss)
+        tf.summary.scalar('train_loss', self.full_loss)
 
         # The ema object help calculate the moving average of train loss and train error
         opt = tf.train.MomentumOptimizer(learning_rate=self.lr_placeholder, momentum=0.9)
-        train_op = opt.minimize(total_loss, global_step=global_step)
+        train_op = opt.minimize(self.full_loss, global_step=global_step)
 
         self.train_op, self.train_ema_op = train_op, 0
 
@@ -71,14 +72,14 @@ class Train(object):
         # summarizing operations by running summary_op. Initialize a new session
         saver = tf.train.Saver(tf.global_variables())
         summary_op = tf.summary.merge_all()
-        init = tf.initialize_all_variables()
         sess = tf.Session()
 
         # If you want to load from a checkpoint
         if FLAGS.is_use_ckpt is True:
-            model_restore(sess, saver)
-            print('Restored from checkpoint...')
+            ckpt_name = model_restore(sess, saver)
+            print('Restored from checkpoint... {}'.format(ckpt_name))
         else:
+            init = tf.initialize_all_varibles()
             sess.run(init)
 
         # This summary writer object helps write summaries on tensorboard
@@ -87,6 +88,7 @@ class Train(object):
         # These lists are used to save a csv file at last
         step_list = []
         train_error_list = []
+        accuracy = [0]*14 
 
         print('Start training...')
         print('----------------------------')
@@ -104,7 +106,7 @@ class Train(object):
 
             # Report to console at specific steps
             if step % FLAGS.report_freq == 0:
-                print('{}/{}.. Loss: {}'.format(step, FLAGS.train_steps, train_loss_value))
+                print('{}/{}.. Loss: {}.. Accuracy: {}'.format(step, FLAGS.train_steps, train_loss_value, str(accuracy)))
                 step_list.append(step)
                 train_error_list.append(train_loss_value)
 
@@ -114,7 +116,7 @@ class Train(object):
                 print('Learning rate decayed to ', FLAGS.init_lr)
 
             # Save checkpoints after certain steps
-            if step % 100 == 0 or (step + 1) == FLAGS.train_steps:
+            if step % 300 == 0 or (step + 1) == FLAGS.train_steps:
                 checkpoint_path = os.path.join(train_dir, 'model.ckpt')
                 print('Saving Checkpoint!: {}'.format(checkpoint_path))
                 saver.save(sess, checkpoint_path, global_step=step)
@@ -124,16 +126,14 @@ class Train(object):
                 df.to_csv(train_dir + FLAGS.version + '_error.csv')
 
             """
-            if step % 300 == 0:
-              indices = get_random_indices(VAL_SIZE)
+            if step % 800 == 0:
+              indices = get_random_indices(VAL_SIZE, 90)
               val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
-              #test(get_random_indices(val_batch_data, val_batch_labels))
-              _, val_loss_value = sess.run([self.train_op, self.full_loss],
-                                  {self.image_placeholder: train_batch_data,
-                                    self.label_placeholder: train_batch_labels,
-                                    self.lr_placeholder: FLAGS.init_lr})
+              net_out, accuracy = test(val_batch_data, val_batch_labels)#, sess, saver)
+              df = pd.DataFrame(data={'net_out':net_out, 'labels':val_batch_labels,
+                              'accuracy': accuracy})
+              df.to_csv(train_dir + FLAGS.version + '_accuracy.csv')
             """
-
 
     ## Helper functions
     def loss(self, logits, labels):
@@ -147,14 +147,6 @@ class Train(object):
         cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels, name='cross_entropy_per_example')
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
         return cross_entropy_mean
-
-def model_restore(sess, saver):
-    fixed_path = FLAGS.ckpt_path.split('-')[0] + "*"
-    ckpts = glob.glob(fixed_path)
-    latest = max([re.search('\-(\d+)\.', x).groups()[0] for x in ckpts])
-    ckpt_path = 'logs_test_110/model.ckpt-' + latest
-    
-    saver.restore(sess, ckpt_path)
 
 
 if __name__ == "__main__":
