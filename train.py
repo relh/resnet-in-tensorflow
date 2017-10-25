@@ -118,8 +118,8 @@ class Train(object):
             # Save checkpoints after certain steps
             if step % 300 == 0 or (step + 1) == FLAGS.train_steps:
                 checkpoint_path = os.path.join(train_dir, 'model.ckpt')
-                print('Saving Checkpoint!: {}'.format(checkpoint_path))
-                saver.save(sess, checkpoint_path, global_step=step)
+                print('Saving Checkpoint!: {} at {} steps'.format(checkpoint_path, int(ckpt_name)+step))
+                saver.save(sess, checkpoint_path, global_step=int(ckpt_name)+step)
 
                 df = pd.DataFrame(data={'step':step_list, 'train_error':train_error_list,
                                 'validation_error': train_error_list})

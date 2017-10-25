@@ -46,7 +46,11 @@ def load_images(idx_range, image_labels, shuffle=True):
           if len(image.shape) > 2:
               print(name + " has broken dimensions!")
               continue
-          images[batch_idx] = image.flatten()
+          try:
+              images[batch_idx] = image.flatten()
+          except:
+              print('Excepted!')
+              continue
 
           diagnoses = label.split('|')
           for problem in diagnoses:
@@ -105,6 +109,11 @@ def prepare_data(mode, prep_size, padding_size=0, path=label_path):
               if len(image.shape) > 2:
                   print(name + " has broken dimensions!")
                   continue
+              try:
+                image.flatten()
+              except TypeError as e:
+                continue
+          
               image_labels.append((name, labels))
               read_count += 1
           else:
