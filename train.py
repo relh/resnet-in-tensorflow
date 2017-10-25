@@ -55,7 +55,6 @@ class Train(object):
 
         self.train_op, self.train_ema_op = train_op, 0
 
-
     def train(self):
         '''
         This is the main function for training
@@ -77,11 +76,7 @@ class Train(object):
 
         # If you want to load from a checkpoint
         if FLAGS.is_use_ckpt is True:
-            ckpts = glob.glob(FLAGS.ckpt_path)
-            latest = max([re.search('\-(\d+)\.', x).groups()[0] for x in ckpts])
-            ckpt_path = 'logs_test_110/model.ckpt-' + latest
-            
-            saver.restore(sess, FLAGS.ckpt_path)
+            model_restore(sess, saver)
             print('Restored from checkpoint...')
         else:
             sess.run(init)
@@ -128,17 +123,16 @@ class Train(object):
                                 'validation_error': train_error_list})
                 df.to_csv(train_dir + FLAGS.version + '_error.csv')
 
-            if True:
-            # if step % 300 == 0:
+            """
+            if step % 300 == 0:
               indices = get_random_indices(VAL_SIZE)
               val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
               #test(get_random_indices(val_batch_data, val_batch_labels))
-              """
               _, val_loss_value = sess.run([self.train_op, self.full_loss],
                                   {self.image_placeholder: train_batch_data,
                                     self.label_placeholder: train_batch_labels,
                                     self.lr_placeholder: FLAGS.init_lr})
-              """
+            """
 
 
     ## Helper functions
@@ -153,6 +147,14 @@ class Train(object):
         cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels, name='cross_entropy_per_example')
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
         return cross_entropy_mean
+
+def model_restore(sess, saver):
+    fixed_path = FLAGS.ckpt_path.split('-')[0] + "*"
+    ckpts = glob.glob(fixed_path)
+    latest = max([re.search('\-(\d+)\.', x).groups()[0] for x in ckpts])
+    ckpt_path = 'logs_test_110/model.ckpt-' + latest
+    
+    saver.restore(sess, ckpt_path)
 
 
 if __name__ == "__main__":

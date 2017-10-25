@@ -28,54 +28,33 @@ def test(image_array, image_answers):
     #tf.metrics.auc(labels, predictions)
 
     # Initialize a new session and restore a checkpoint
-    saver = tf.train.Saver(tf.all_variables())
-    #saver = tf.train.Saver(tf.global_variables())
+    #saver = tf.train.Saver(tf.all_variables())
+    saver = tf.train.Saver(tf.global_variables())
     summary_op = tf.summary.merge_all()
-    init = tf.initialize_all_variables()
+    #init = tf.initialize_all_variables()
     sess = tf.Session()
 
-    ckpts = glob.glob(FLAGS.ckpt_path)
-    latest = max([re.search('\-(\d+)\.', x).groups()[0] for x in ckpts])
-    ckpt_path = 'logs_test_110/model.ckpt-' + latest
-    saver.restore(sess, FLAGS.ckpt_path)
-    #saver.restore(sess, FLAGS.test_ckpt_path)
-    print('Model restored from ', FLAGS.test_ckpt_path)
+    model_restore(sess, saver)
+    print('Model restored from ', FLAGS.ckpt_path)
 
     prediction_array = np.array([]).reshape(-1, NUM_CLASS)
     # Test by batches
-    num_batches = 1
+    num_batches = 30
     for step in range(num_batches):
         if step % 10 == 0:
             print('%i batches finished!' %step)
-        #offset = step * FLAGS.test_batch_size
-        #test_image_batch = test_image_array[offset:offset+FLAGS.test_batch_size, ...]
-
+        batch_input_array = image_array[step*3:step*3+3]
         batch_prediction_array = sess.run(predictions,
                                     feed_dict={test_image_placeholder: image_array})
 
         prediction_array = np.concatenate((prediction_array, batch_prediction_array))
 
-    # If test_batch_size is not a divisor of num_test_images
-    """
-    if remain_images != 0:
-        self.test_image_placeholder = tf.placeholder(dtype=tf.float32, shape=[remain_images,
-                                                    IMG_HEIGHT, IMG_WIDTH, IMG_DEPTH])
-        # Build the test graph
-        logits = inference(self.test_image_placeholder, FLAGS.num_residual_blocks, reuse=True)
-        #predictions = tf.nn.softmax(logits)
-
-        test_image_batch = test_image_array[-remain_images:, ...]
-
-        batch_prediction_array = sess.run(predictions, feed_dict={
-            self.test_image_placeholder: test_image_batch})
-
-        prediction_array = np.concatenate((prediction_array, batch_prediction_array))
-    """
-
+    print(prediction_array)
+    print(image_answers)
     return prediction_array
 
 if __name__ == "__main__":
   val_image_labels = prepare_data('val', VAL_SIZE)
-  indices = get_random_indices(VAL_SIZE)
+  indices = get_random_indices(VAL_SIZE, 90)
   val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
   test(val_batch_data, val_batch_labels)
