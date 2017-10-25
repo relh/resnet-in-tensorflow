@@ -33,7 +33,7 @@ def test(image_array, image_answers):
                                                     IMG_HEIGHT, IMG_WIDTH, IMG_DEPTH])
 
     # Build the test graph
-    logits = inference(test_image_placeholder, FLAGS.num_residual_blocks, reuse=False)
+    logits = inference(test_image_placeholder, FLAGS.num_residual_blocks, reuse=None)
     predictions = tf.nn.sigmoid(logits)
 
     # Initialize a new session and restore a checkpoint
@@ -75,9 +75,8 @@ def test(image_array, image_answers):
     return prediction_out, correct 
 
 if __name__ == "__main__":
-  val_image_labels = prepare_data('val', VAL_SIZE)
-  for i in range(100):
-    indices = get_random_indices(VAL_SIZE, 90)
+    val_image_labels = prepare_data('val', VAL_SIZE)
+    indices = get_random_indices(VAL_SIZE, 150)
     val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
     po, co = test(val_batch_data, val_batch_labels)
     print(co)

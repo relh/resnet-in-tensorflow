@@ -145,7 +145,7 @@ class Train(object):
         '''
         labels = tf.cast(labels, tf.float32)
         cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels, name='cross_entropy_per_example')
-        cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+        cross_entropy_mean = sum(tf.reduce_mean(cross_entropy, axis=0, name='cross_entropy'))
         return cross_entropy_mean
 
 
