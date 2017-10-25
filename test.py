@@ -76,14 +76,14 @@ def test(image_array, image_answers):
 
 if __name__ == "__main__":
   val_image_labels = prepare_data('val', VAL_SIZE)
-  indices = get_random_indices(VAL_SIZE, 30) #10000)
-  val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
-  po, co = test(val_batch_data, val_batch_labels)
-  print(po.shape)
-  print(val_batch_labels.shape)
-  with open('out.csv', 'a') as f:
-    for i in range(len(po)):
-      f.write(str(po[i]))
-      f.write(',')
-      f.write(str(val_batch_labels[i]))
-      f.write('\n')
+  for i in range(100):
+    indices = get_random_indices(VAL_SIZE, 90)
+    val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
+    po, co = test(val_batch_data, val_batch_labels)
+    print(co)
+    with open('out.csv', 'a') as f:
+      for i in range(len(po)):
+        f.write(str(po[i]))
+        f.write(',')
+        f.write(str(val_batch_labels[i]))
+        f.write('\n')
