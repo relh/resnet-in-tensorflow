@@ -118,8 +118,8 @@ class Train(object):
             # Save checkpoints after certain steps
             if step % 300 == 0 or (step + 1) == FLAGS.train_steps:
                 checkpoint_path = os.path.join(train_dir, 'model.ckpt')
-                print('Saving Checkpoint!: {}'.format(checkpoint_path))
-                saver.save(sess, checkpoint_path, global_step=step)
+                print('Saving Checkpoint!: {} at {} steps'.format(checkpoint_path, int(ckpt_name)+step))
+                saver.save(sess, checkpoint_path, global_step=int(ckpt_name)+step)
 
                 df = pd.DataFrame(data={'step':step_list, 'train_error':train_error_list,
                                 'validation_error': train_error_list})
@@ -145,7 +145,7 @@ class Train(object):
         '''
         labels = tf.cast(labels, tf.float32)
         cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels, name='cross_entropy_per_example')
-        cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+        cross_entropy_mean = sum(tf.reduce_mean(cross_entropy, axis=0, name='cross_entropy'))
         return cross_entropy_mean
 
 

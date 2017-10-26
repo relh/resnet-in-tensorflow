@@ -33,7 +33,7 @@ def test(image_array, image_answers):
                                                     IMG_HEIGHT, IMG_WIDTH, IMG_DEPTH])
 
     # Build the test graph
-    logits = inference(test_image_placeholder, FLAGS.num_residual_blocks, reuse=False)
+    logits = inference(test_image_placeholder, FLAGS.num_residual_blocks, reuse=None)
     predictions = tf.nn.sigmoid(logits)
 
     # Initialize a new session and restore a checkpoint
@@ -49,7 +49,7 @@ def test(image_array, image_answers):
 
     prediction_out = np.array([]).reshape(-1, NUM_CLASS)
     # Test by batches
-    num_batches = 30
+    #num_batches = 30
     for step in range(num_batches):
         if step % 10 == 0:
             print('%i batches finished!' %step)
@@ -75,7 +75,14 @@ def test(image_array, image_answers):
     return prediction_out, correct 
 
 if __name__ == "__main__":
-  val_image_labels = prepare_data('val', VAL_SIZE)
-  indices = get_random_indices(VAL_SIZE, 90)
-  val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
-  test(val_batch_data, val_batch_labels)
+    val_image_labels = prepare_data('val', VAL_SIZE)
+    indices = get_random_indices(VAL_SIZE, 150)
+    val_batch_data, val_batch_labels = load_images(indices, val_image_labels, True)
+    po, co = test(val_batch_data, val_batch_labels)
+    print(co)
+    with open('out.csv', 'a') as f:
+      for i in range(len(po)):
+        f.write(str(po[i]))
+        f.write(',')
+        f.write(str(val_batch_labels[i]))
+        f.write('\n')
